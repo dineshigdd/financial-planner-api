@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid())
+  username String @unique
+  email String @unique
+  password String 
+  role String @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  //relation
+  RefreshTokens RefreshToken[]
+}
+
+
+model RefreshToken {
+  id             String   @id @default(uuid())
+  token          String   @unique 
+  userId         String
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  revokedAt      DateTime?
+
+  // Relations
+  user           User       @relation(fields: [userId], references: [id] , onDelete: Cascade)
+
+  // Self-relation for token replacement
+  replacedById   String?   @unique
+  replacedBy     RefreshToken? @relation("TokenReplacement", fields: [replacedById], references: [id] , onDelete: SetNull)
+  replaces       RefreshToken? @relation("TokenReplacement")
+
+  @@index([userId])
+}
