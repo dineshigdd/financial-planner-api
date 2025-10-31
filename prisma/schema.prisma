@@ -4,6 +4,11 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+
+// ==========================================
+// CONFIGURATION
+// ==========================================
+
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -14,17 +19,37 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+ // PAYMENT    // I may add for To credit cards/loans
+}
+
+
+// ==========================================
+// USER MODELS
+// ==========================================
+
 model User {
   id String @id @default(uuid())
   username String @unique
   email String @unique
   password String 
   role String @default("user")
+  
+  //relations
+  RefreshTokens RefreshToken[]
+  transactions Transaction[]
+  accounts     Account[]
+  budgets      Budget[]
+ 
+  //I may add this relationship later
+  //categories   Category[]   // User can have custom categories
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  //relation
-  RefreshTokens RefreshToken[]
 }
 
 
@@ -46,3 +71,115 @@ model RefreshToken {
 
   @@index([userId])
 }
+
+
+// ==========================================
+// CATEGORY MODELS
+// ==========================================
+model Category {
+  id     String @id @default(uuid()) 
+  name   String
+  type   TransactionType
+  icon   String?
+  color  String?
+
+
+  // 1:N relationship (one category has many transactions)
+  transactions Transaction[]
+
+  // 1:N relationship (one Category can have many Budgets)
+  budgets Budget[]  
+
+  // I may add this relaionship later
+  //userId String?
+  //user   User?  @relation(fields: [userId], references: [id])
+}
+
+
+// ==========================================
+// BUDGET MODELS
+// ==========================================
+model Budget {
+  id        String   @id @default(uuid())  
+  amount    Decimal  @db.Decimal(10, 2)
+  period    String
+
+  // N:1 relationship with User
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  // N:1 relationship with Category
+  categoryId String 
+  category  Category @relation(fields: [ categoryId], references: [id])
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([userId, categoryId, period]) 
+}
+
+// ==========================================
+// ACCOUNT MODELS
+// ==========================================
+enum AccountType {
+  CHECKING      // Regular checking account
+  SAVINGS       // Savings account
+  CREDIT_CARD   // Credit card
+  CASH          // Physical cash/wallet
+  INVESTMENT    // Investment/brokerage account
+  LOAN          // Loan account (mortgage, personal loan)
+  OTHER         // Catch-all for anything else
+}
+
+
+model Account {
+  id       String   @id @default(uuid())
+  name     String // User-friendly name: "Main Checking", "Emergency Fund"
+  type     AccountType
+  balance  Decimal  @db.Decimal(10, 2) // Current balance
+  currency String   @default("USD")
+  
+  // N:1 relationship with User
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  
+  // 1:N relationship with Transaction
+  transactions Transaction[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+ 
+
+// ==========================================
+// TRANSACTION MODELS
+// ==========================================
+
+model Transaction {
+  id     String          @id @default(uuid())
+  type   TransactionType
+  amount Decimal         @db.Decimal(10, 2)
+  date   DateTime
+  note   String?
+  
+  // N:1 relationship with User
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  
+  // N:1 relationship with Category
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+  
+  // N:1 relationship with Account (optional)
+  accountId String?
+  account   Account? @relation(fields: [accountId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId, date])
+  @@index([categoryId])
+}
+
+
+
