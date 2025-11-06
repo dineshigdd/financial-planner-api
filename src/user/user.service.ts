@@ -77,7 +77,7 @@ export class UserService {
     //get all users( for admin purposes)
     async getAllUsers(): Promise<Omit <User, 'password'>[]> {
         const users = await this.prisma.user.findMany();
-
+      
         //Exclude password from each user object
         return users.map(({ password, ...userWithoutPassword }) => userWithoutPassword);
 
