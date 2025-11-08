@@ -31,4 +31,22 @@ export class AppController {
       };
     }
   }
+
+
+  @Get('db-test')
+  async testDatabaseConnection() {
+    try {
+      const userCount = await this.prisma.user.count();
+      return {
+        status: 'success',
+        message: 'Database connection successful',
+        userCount,
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        error: error.message,
+      };
+    }
+  } 
 }

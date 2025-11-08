@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private  prisma: PrismaService) {}
 
     // Add user-related methods here
     async createUser(data: {

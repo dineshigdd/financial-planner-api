@@ -1,9 +1,8 @@
 import { Injectable , UnauthorizedException, ConflictException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import  { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import bcrypt from 'bcrypt';
-import { access } from 'fs';
 
 
 
@@ -18,9 +17,12 @@ export class AuthService {
 
     async SignIn(username: string, password: string){
         const user = await this.users.findByUsername(username);
-        if( user?.password !== password) {
+        console.log( 'user', user);
+        
+        if( !user) {
             throw new UnauthorizedException('Invalid credentials');
         }
+
         const { password:_, ...result } = user;
 
 
@@ -30,7 +32,7 @@ export class AuthService {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        const accessToken = this.generateAccessToken(user.id, user.username);
+        const accessToken = this.generateAccessToken(user.id, user.username , user.role );
         
         return {
            accessToken,
@@ -39,8 +41,8 @@ export class AuthService {
         
     }
 
-    async generateAccessToken( id: String, username: string): Promise<string> {
-        const payload = { sub:id, username };
-        return this.jwtService.signAsync(payload);
+    generateAccessToken( userId: String, username: string , role: string ) {
+        const payload = { sub:userId, username , role} ;
+        return this.jwtService.sign(payload);
     }
 }
