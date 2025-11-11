@@ -33,16 +33,42 @@ export class AuthService {
         }
 
         const accessToken = this.generateAccessToken(user.id, user.username , user.role );
+        const refreshToken = await this.generateRefreshToken(user.id);
         
         return {
            accessToken,
+           refreshToken,
            user: result,
         }
         
     }
 
-    generateAccessToken( userId: String, username: string , role: string ) {
+    generateAccessToken( userId: String, username: string , role: string ):string {
         const payload = { sub:userId, username , role} ;
         return this.jwtService.sign(payload);
     }
+
+    async generateRefreshToken( userId: string):Promise<string> {
+        const payload = { sub:userId,type: 'refresh' , jti: crypto.randomUUID} ;
+        const refreshToken = this.jwtService.sign(payload, {
+            secret: process.env.REFRESH_TOKEN_SECRET,
+            expiresIn: '7d', // Refresh token expires in 7 days
+        });
+
+        // Store refresh token in database
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7); // Set expiration date to 7 days from now
+
+            await this.prisma.refreshToken.create({
+                data: {
+                    token: refreshToken,
+                    userId: userId,
+                    expiresAt: expiresAt,
+                },
+        });
+
+        return refreshToken;
+    }
 }
+
+
