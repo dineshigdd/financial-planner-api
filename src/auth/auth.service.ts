@@ -69,6 +69,42 @@ export class AuthService {
 
         return refreshToken;
     }
+
+    // Refresh access token
+    async refreshAccessToken( refreshToken: string): Promise<{ accessToken: string }> {
+        // Placeholder for refresh token logic  
+        try{
+            const payload = this.jwtService.verify(refreshToken, {
+                secret: process.env.REFRESH_TOKEN_SECRET,
+            });
+
+            const storedToken = await this.prisma.refreshToken.findUnique({
+                where: {token: refreshToken },
+                include: { user: true },
+                });
+
+            if(!storedToken || storedToken.revokedAt ){
+                throw new UnauthorizedException('Invalid refresh token');
+            }
+
+            if( payload.type !== 'refresh'){
+                throw new UnauthorizedException('Invalid token type');
+            }
+
+            if( new Date() > storedToken.expiresAt){
+                throw new UnauthorizedException('Refresh token expired');
+            }
+
+            //Generate new access token
+            const user = storedToken.user;
+            const newAccessToken = this.generateAccessToken(user.id, user.username, user.role);
+            return { accessToken: newAccessToken }; 
+        } catch (error) {
+            throw new UnauthorizedException('Invalid refresh token');
+        }
+    }     
+
+    
 }
 
 
