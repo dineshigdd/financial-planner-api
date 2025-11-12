@@ -103,8 +103,38 @@ export class AuthService {
             throw new UnauthorizedException('Invalid refresh token');
         }
     }     
+/*
+    async revokeRefreshToken( refreshToken: string): Promise<void> {
+        // Placeholder for revoke token logic  
+        const storedToken = await this.prisma.refreshToken.findUnique({
+            where: { token: refreshToken },
+        });
 
-    
+        if(!storedToken || storedToken.revokedAt){
+            throw new UnauthorizedException('Invalid refresh token');
+        }
+
+        await this.prisma.refreshToken.update({
+            where: { token: refreshToken },
+            data: { revokedAt: new Date() },
+        });
+    } */
+
+
+    async logout( refreshToken: string): Promise<void> {
+        const storedToken = await this.prisma.refreshToken.findUnique({
+            where: { token: refreshToken },
+        });
+
+        if(!storedToken || storedToken.revokedAt){
+            throw new UnauthorizedException('Invalid refresh token');
+        }
+
+        await this.prisma.refreshToken.update({
+            where: { token: refreshToken },
+            data: { revokedAt: new Date() },
+        });
+    }
 }
 
 
