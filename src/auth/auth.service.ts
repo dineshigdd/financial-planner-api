@@ -16,8 +16,63 @@ export class AuthService {
     ){}
 
     async SignIn(username: string, password: string){
+        
+        const user = await this.validateUser(username, password);
+        const accessToken = this.generateAccessToken(user.id, user.username , user.role );
+        const refreshToken = await this.generateRefreshToken(user.id);
+        
+        return {
+           accessToken,
+           refreshToken,
+           user: user
+        }
+        
+    }
+
+    async SignUp(username: string, password: string, email: string, role?: string){ 
+        
+        console.log( "AuthService SignUp called with:", username, password, email, role );
+        const existingEmail = await this.users.findByEmail(email);  
+        if (existingEmail){
+            throw new ConflictException('Email already exists');
+        }
+
+        const existingUsername = await this.users.findByUsername(username);
+        if (existingUsername){
+            throw new ConflictException('Username already exists');
+        }
+
+        const salt = await bcrypt.genSalt( 10 );
+        const hashedPassword = await bcrypt.hash(password, salt );
+        const newUser = await this.users.createUser({
+            username,
+            password: hashedPassword,
+            email,
+            role,
+        });
+
+
+     
+        const accessToken:string = this.generateAccessToken(newUser.id, newUser.username , newUser.role );
+        const refreshToken = await this.generateRefreshToken(newUser.id);
+
+        return {
+            accessToken,
+            refreshToken,
+            user:{
+                id: newUser.id,
+                username: newUser.username,
+                email: newUser.email,
+                role: newUser.role,
+            },
+        };
+    }
+    
+
+     async validateUser( username: string, password: string) {
+
         const user = await this.users.findByUsername(username);
-        console.log( 'user', user);
+       
         
         if( !user) {
             throw new UnauthorizedException('Invalid credentials');
@@ -32,17 +87,28 @@ export class AuthService {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        const accessToken = this.generateAccessToken(user.id, user.username , user.role );
-        const refreshToken = await this.generateRefreshToken(user.id);
-        
-        return {
-           accessToken,
-           refreshToken,
-           user: result,
+     
+        return result;
+    }   
+
+
+    async logout( refreshToken: string): Promise<void> {
+        const storedToken = await this.prisma.refreshToken.findUnique({
+            where: { token: refreshToken },
+        });
+
+        if(!storedToken || storedToken.revokedAt){
+            throw new UnauthorizedException('Invalid refresh token');
         }
-        
+
+        await this.prisma.refreshToken.update({
+            where: { token: refreshToken },
+            data: { revokedAt: new Date() },
+        });
     }
 
+   
+    
     generateAccessToken( userId: String, username: string , role: string ):string {
         const payload = { sub:userId, username , role} ;
         return this.jwtService.sign(payload);
@@ -121,19 +187,21 @@ export class AuthService {
     } */
 
 
-    async logout( refreshToken: string): Promise<void> {
-        const storedToken = await this.prisma.refreshToken.findUnique({
-            where: { token: refreshToken },
-        });
+    
 
-        if(!storedToken || storedToken.revokedAt){
-            throw new UnauthorizedException('Invalid refresh token');
+    // Verify access token (for guards)
+    async verifyAccessToken( token: string): Promise<any> {
+        try {
+            const payload = this.jwtService.verify(token);
+            const user = await this.users.findById(payload.sub);
+
+            if(!user) {
+                throw new UnauthorizedException('User not found');
+            }
+            return payload;
+        } catch (error) {
+            throw new UnauthorizedException('Invalid access token');
         }
-
-        await this.prisma.refreshToken.update({
-            where: { token: refreshToken },
-            data: { revokedAt: new Date() },
-        });
     }
 }
 

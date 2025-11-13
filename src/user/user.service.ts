@@ -36,8 +36,8 @@ export class UserService {
         const user = await this.prisma.user.create({ 
           data: {
             username: data.username,
-            email: data.email,
             password: hashedPassword,
+            email: data.email,          
             role: data.role || 'user', // Default role is 'USER' if not provided
           }, 
         });

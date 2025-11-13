@@ -29,6 +29,44 @@ describe('AuthController', () => {
     service = module.get<AuthService>(AuthService);
   });
 
+
+  //--
+  describe('signUp', () => {
+    it('should call authService.SignUp with username, password, email, role and return the JWT', async () => {
+      // Arrange
+      const signUpDto = { username: 'johndoe', password: 'password123!', email: 'dinesh@test.com', role: 'user' };
+      
+      // FIX: Define the expected token directly (since generateAccessToken isn't mocked)
+      const expectedToken = { access_token: 'mock-jwt-token-for-user' }; 
+
+      // Arrange: Set the mock return value (using SignUp - capitalized 'S')
+      (service.SignUp as jest.Mock).mockResolvedValue(expectedToken); 
+
+      // Act
+      const result = await controller.signUp(signUpDto);
+
+      // Assert 1: Check if the service method was called correctly (capitalized 'S')
+      expect(service.SignUp).toHaveBeenCalledWith(
+        signUpDto.username, 
+        signUpDto.password,
+        signUpDto.email,
+        signUpDto.role,
+      );
+      
+      // Assert 2
+      expect(result).toEqual(expectedToken);
+    });
+
+    it('should throw an UnauthorizedException on service failure', async () => {
+      // Arrange: Mock the service to throw an error (capitalized 'S')
+      (service.SignUp as jest.Mock).mockRejectedValue(new UnauthorizedException()); 
+
+      // Act & Assert
+      await expect(
+        controller.signUp({ username: 'wronguser', password: 'badpassword', email: 'jogndoe@exampl.com' , role: 'user' }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+  });
   // ---
 
   describe('signIn', () => {
