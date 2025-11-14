@@ -2,6 +2,7 @@ import { Injectable , UnauthorizedException, ConflictException } from '@nestjs/c
 import { PrismaService } from '../prisma/prisma.service';
 import  { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
+import { Response } from 'express';
 import bcrypt from 'bcrypt';
 
 
@@ -20,6 +21,7 @@ export class AuthService {
         const user = await this.validateUser(username, password);
         const accessToken = this.generateAccessToken(user.id, user.username , user.role );
         const refreshToken = await this.generateRefreshToken(user.id);
+        
         
         return {
            accessToken,
@@ -82,14 +84,25 @@ export class AuthService {
             where: { token: refreshToken },
         });
 
-        if(!storedToken || storedToken.revokedAt){
-            throw new UnauthorizedException('Invalid refresh token');
+        // CHANGE: Only attempt to update if the token exists AND is NOT already revoked.
+        // If it's missing or revoked, we simply skip the DB operation.
+        if(storedToken && !storedToken.revokedAt){
+            
+            // This is the only time we perform the DB write
+            await this.prisma.refreshToken.update({
+                where: { token: refreshToken },
+                data: { revokedAt: new Date() },
+            });
         }
+
+        // if(!storedToken || storedToken.revokedAt){
+        //     throw new UnauthorizedException('Invalid refresh token');
+        // }
         
-        await this.prisma.refreshToken.update({
-            where: { token: refreshToken },
-            data: { revokedAt: new Date() },
-        });
+        // await this.prisma.refreshToken.update({
+        //     where: { token: refreshToken },
+        //     data: { revokedAt: new Date() },
+        // });
 
 
         return { message: 'Logged out successfully.' };
