@@ -11,10 +11,12 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED) 
   async signUp(@Body() SignUpDto:SignUpDto) {
     // Placeholder for sign-up logic
-    const { username , password , email, role } = SignUpDto;
-    console.log( "SignUpDto:", SignUpDto );
-    return this.authService.SignUp( username, password , email , role );
+    const { username , password , email } = SignUpDto;
+ 
+    return this.authService.SignUp( username, password , email  );
   }
+
+
 
   @Post('login')
   @HttpCode(HttpStatus.OK) 

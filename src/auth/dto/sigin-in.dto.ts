@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength  } from 'class-validator';
+import { IsNotEmpty, IsString, MinLength  } from 'class-validator';
 
 export class SignInDto {
   @IsNotEmpty({ message: 'Username should not be empty' })

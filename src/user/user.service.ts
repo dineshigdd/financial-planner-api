@@ -30,7 +30,8 @@ export class UserService {
 
 
         //Hash the password before storing it
-        const hashedPassword = await bcrypt.hash(data.password, 10);
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(data.password, salt);
 
         // create a new user record in the database
         const user = await this.prisma.user.create({ 

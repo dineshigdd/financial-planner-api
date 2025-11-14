@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength , IsOptional } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength , IsOptional , IsIn } from 'class-validator';
 
 export class CreateUserDto {
   @IsNotEmpty({ message: 'Username should not be empty' })
@@ -18,7 +18,9 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString({ message: 'Role must be a string' })
+  @IsIn(['user', 'admin'])  // Validate allowed roles
   role?: string;
+
 }
        
            

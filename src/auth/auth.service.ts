@@ -31,27 +31,32 @@ export class AuthService {
 
     async SignUp(username: string, password: string, email: string, role?: string){ 
         
-        console.log( "AuthService SignUp called with:", username, password, email, role );
-        const existingEmail = await this.users.findByEmail(email);  
-        if (existingEmail){
-            throw new ConflictException('Email already exists');
-        }
+        // console.log( "AuthService SignUp called with:", username, password, email, role );
+        // const existingEmail = await this.users.findByEmail(email);  
+        // if (existingEmail){
+        //     throw new ConflictException('Email already exists');
+        // }
 
-        const existingUsername = await this.users.findByUsername(username);
-        if (existingUsername){
-            throw new ConflictException('Username already exists');
-        }
+        // const existingUsername = await this.users.findByUsername(username);
+        // if (existingUsername){
+        //     throw new ConflictException('Username already exists');
+        // }
 
-        const salt = await bcrypt.genSalt( 10 );
-        const hashedPassword = await bcrypt.hash(password, salt );
+        // const salt = await bcrypt.genSalt( 10 );
+        // const hashedPassword = await bcrypt.hash(password, salt );
+        // const newUser = await this.users.createUser({
+        //     username,
+        //     password: hashedPassword,
+        //     email,
+        //     role,
+        // });
+
         const newUser = await this.users.createUser({
             username,
-            password: hashedPassword,
+            password,
             email,
             role,
         });
-
-
      
         const accessToken:string = this.generateAccessToken(newUser.id, newUser.username , newUser.role );
         const refreshToken = await this.generateRefreshToken(newUser.id);
