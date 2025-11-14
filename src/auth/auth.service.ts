@@ -31,26 +31,6 @@ export class AuthService {
 
     async SignUp(username: string, password: string, email: string, role?: string){ 
         
-        // console.log( "AuthService SignUp called with:", username, password, email, role );
-        // const existingEmail = await this.users.findByEmail(email);  
-        // if (existingEmail){
-        //     throw new ConflictException('Email already exists');
-        // }
-
-        // const existingUsername = await this.users.findByUsername(username);
-        // if (existingUsername){
-        //     throw new ConflictException('Username already exists');
-        // }
-
-        // const salt = await bcrypt.genSalt( 10 );
-        // const hashedPassword = await bcrypt.hash(password, salt );
-        // const newUser = await this.users.createUser({
-        //     username,
-        //     password: hashedPassword,
-        //     email,
-        //     role,
-        // });
-
         const newUser = await this.users.createUser({
             username,
             password,
@@ -97,7 +77,7 @@ export class AuthService {
     }   
 
 
-    async logout( refreshToken: string): Promise<void> {
+    async logout( refreshToken: string): Promise<{ message: string }> {
         const storedToken = await this.prisma.refreshToken.findUnique({
             where: { token: refreshToken },
         });
@@ -105,13 +85,17 @@ export class AuthService {
         if(!storedToken || storedToken.revokedAt){
             throw new UnauthorizedException('Invalid refresh token');
         }
-
+        
         await this.prisma.refreshToken.update({
             where: { token: refreshToken },
             data: { revokedAt: new Date() },
         });
+
+
+        return { message: 'Logged out successfully.' };
     }
 
+  
    
     
     generateAccessToken( userId: String, username: string , role: string ):string {
@@ -174,22 +158,8 @@ export class AuthService {
             throw new UnauthorizedException('Invalid refresh token');
         }
     }     
-/*
-    async revokeRefreshToken( refreshToken: string): Promise<void> {
-        // Placeholder for revoke token logic  
-        const storedToken = await this.prisma.refreshToken.findUnique({
-            where: { token: refreshToken },
-        });
 
-        if(!storedToken || storedToken.revokedAt){
-            throw new UnauthorizedException('Invalid refresh token');
-        }
-
-        await this.prisma.refreshToken.update({
-            where: { token: refreshToken },
-            data: { revokedAt: new Date() },
-        });
-    } */
+    
 
 
     
@@ -203,7 +173,7 @@ export class AuthService {
             if(!user) {
                 throw new UnauthorizedException('User not found');
             }
-            return payload;
+            return user;
         } catch (error) {
             throw new UnauthorizedException('Invalid access token');
         }
