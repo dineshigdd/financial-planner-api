@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post , Res, Req } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post , Res, Req, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sigin-in.dto';
 import { SignUpDto } from './dto/sign-up-dto';
@@ -39,7 +39,7 @@ export class AuthController {
     }
   }
 
-/*@Post('refresh')
+  @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Req() req: Request,
@@ -63,7 +63,7 @@ export class AuthController {
     });
 
     return { message: 'Token refreshed' };
-  }*/
+  }
   
 
   @Post('logout')
