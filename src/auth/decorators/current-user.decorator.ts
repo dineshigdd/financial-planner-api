@@ -1,4 +1,4 @@
-import { createParamDecorator, ExecutionContext } from "@prisma/common";
+import { createParamDecorator, ExecutionContext } from "@nestjs/common";
 
 export const CurrentUser = createParamDecorator(
     async (data: unknown, ctx: ExecutionContext) => {
