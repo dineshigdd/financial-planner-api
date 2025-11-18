@@ -2,7 +2,6 @@ import { Injectable , UnauthorizedException, ConflictException } from '@nestjs/c
 import { PrismaService } from '../prisma/prisma.service';
 import  { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
-import { Response } from 'express';
 import bcrypt from 'bcrypt';
 
 

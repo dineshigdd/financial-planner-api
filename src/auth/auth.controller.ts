@@ -19,12 +19,8 @@ export class AuthController {
     return {
       user: result.user,  
       message: 'User registered successfully',
-    }
-    
-
+    }   
   }
-
-
 
   @Post('login')
   @HttpCode(HttpStatus.OK) 

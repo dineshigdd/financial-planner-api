@@ -16,11 +16,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 @Controller('users')
 export class UserController {
     constructor(private readonly userService: UserService) {}
-    
-    @Post()
+    //creting a new user is via /auth/register endpoint. this should be removed later
+   /* @Post()
     async create(@Body() createUserDto: CreateUserDto) {
         return this.userService.createUser(createUserDto);
-    }
+    } */
 
     @Get()
     async findAll() {

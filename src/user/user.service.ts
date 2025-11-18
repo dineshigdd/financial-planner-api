@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -23,10 +23,12 @@ export class UserService {
             OR:[{email: data.email}, {username: data.username}] 
            },
         });
-    
-        if (existingUser) {
-          throw new Error('User with this email already exists');
-        }   
+  
+        if (existingUser?.username === data.username) {
+          throw new ConflictException('User with this username already exists');
+        }else if (existingUser?.email === data.email) {
+          throw new ConflictException('User with this email already exists');
+        }  
 
 
         //Hash the password before storing it
