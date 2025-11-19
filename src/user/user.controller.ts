@@ -6,11 +6,18 @@ import {
     Patch,
     Param,
     Delete,
+    ForbiddenException,
+    UseGuards,
 
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import type { Request } from 'express';
+// import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+
+
 
 
 @Controller('users')
@@ -27,8 +34,14 @@ export class UserController {
         return this.userService.getAllUsers()
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get(':id')
-    async findOne(@Param('id') id: string) {
+    async findOne(@Param('id') id: string , @CurrentUser()  user: any) {
+        if(  id !== user.id ){
+           throw new ForbiddenException('Access to other user accounts is denied.');
+        }
+        
+
         return this.userService.findById(id);
     }
 

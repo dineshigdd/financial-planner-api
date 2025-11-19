@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -67,6 +67,10 @@ export class UserService {
           return null;
         }
         
+        if( id !== user.id){
+          throw new ForbiddenException('User ID mismatch. Access denied.');
+        }
+
         const { password, ...userWithoutPassword } = user;   
         return userWithoutPassword;
     }    
