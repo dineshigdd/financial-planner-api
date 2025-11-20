@@ -37,21 +37,33 @@ export class UserController {
     @UseGuards(JwtAuthGuard)
     @Get(':id')
     async findOne(@Param('id') id: string , @CurrentUser()  user: any) {
-        if(  id !== user.id ){
-           throw new ForbiddenException('Access to other user accounts is denied.');
-        }
-        
+       
+        this.handleForbiddenAccess( id, user);
 
         return this.userService.findById(id);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Patch(':id')
-    async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    async update(@Param('id') id: string,@CurrentUser()  user: any, @Body() updateUserDto: UpdateUserDto) {
+
+        this.handleForbiddenAccess( id, user);
+
         return this.userService.updateUser(id, updateUserDto);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Delete(':id')
-    async remove(@Param('id') id: string) {
+    async remove(@Param('id') id: string, @CurrentUser()  user: any ) {
+
+        this.handleForbiddenAccess( id, user);
+
         return this.userService.deleteUser(id);
+    }
+
+    private handleForbiddenAccess( id: string, user: any) {
+        if(  id !== user.id ){  
+            throw new ForbiddenException('Access to other user accounts is denied.');
+        }
     }
 }

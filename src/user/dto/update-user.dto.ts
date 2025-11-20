@@ -4,7 +4,7 @@ export class UpdateUserDto {
   @IsOptional()
   @IsNotEmpty({ message: 'Username should not be empty' })
   @IsString({ message: 'Username must be a string' })
-  @MinLength(8, { message: 'Username must be at least 3 characters long' })
+  @MinLength(8, { message: 'Username must be at least 8 characters long' })
   username?: string;
 
   @IsOptional()
