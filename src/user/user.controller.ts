@@ -15,7 +15,7 @@ import type { Request } from 'express';
 // import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 
 
@@ -35,7 +35,7 @@ export class UserController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Get(':id')
+    @Get(':id')  
     async findOne(@Param('id') id: string , @CurrentUser()  user: any) {
        
         this.handleForbiddenAccess( id, user);
@@ -62,7 +62,7 @@ export class UserController {
     }
 
     private handleForbiddenAccess( id: string, user: any) {
-        if(  id !== user.id ){  
+        if(  id !== user.id && user.role !== 'admin' ) {  
             throw new ForbiddenException('Access to other user accounts is denied.');
         }
     }
